@@ -30,6 +30,9 @@ export default function Editor() {
         const quillEditor = new Quill('#editor',{theme: 'snow',modules: {toolbar: toolbarOptions} });
     },[])
   return (
-    <Box id='editor'></Box>
+    <Box className = 'container1'>
+        <Box id='editor'  className= 'container2'></Box>
+
+    </Box>
   )
 }
