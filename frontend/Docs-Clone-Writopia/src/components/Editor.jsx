@@ -4,8 +4,11 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css'
 
 import { io } from 'socket.io-client'
+import { useParams } from 'react-router-dom';
 
 export default function Editor() {
+
+  const {id}  = useParams();
   const toolbarOptions = [
     ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
     ['blockquote', 'code-block'],
@@ -44,6 +47,8 @@ export default function Editor() {
 
   useEffect(() => {
     const quillEditor = new Quill('#editor', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+    quillEditor.disable();
+    quillEditor.setText('Wait Your data is Loading 😊..')
     setQuillText(quillEditor);
   }, [])
 
@@ -72,6 +77,7 @@ export default function Editor() {
   }
 
     socket && socket.on('receive-changes',handleChange)
+
     return () =>{
 
       socket && socket.off('receive-changes', handleChange)
@@ -80,6 +86,43 @@ export default function Editor() {
   },[Quilltext,socket]);
 
 
+  useEffect(() =>{
+    if(Quilltext === null || socket === null) return;
+
+    // load document only if is fetched from backend and enable the quill editor
+    socket && socket.once('load-document',(data)=>{
+
+      Quilltext && Quilltext.setContents(data);
+      Quilltext && Quilltext.enable();
+
+    }
+  )
+    // get only particular docs with given docid
+    socket && socket.emit('get-document',id);
+
+    
+
+
+  },[Quilltext,socket,id])
+
+
+  useEffect(() =>{
+
+    if(Quilltext === null || socket === null) return;
+
+    const interval =setInterval(() =>{
+      socket && socket.emit('save-document', Quilltext.getContents())
+
+    },2000);
+
+    return (() =>{
+      clearInterval(interval);
+    })
+
+
+
+
+  },[Quilltext,socket,id])
 
   // useEffect(() => {
 
